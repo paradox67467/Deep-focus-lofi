@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep-Focus LoFi — Sign In</title>
+  <meta name="description" content="Sign in to Deep-Focus LoFi to save your Pomodoro sessions and track your focus progress." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/darkmode.css" />
+
+  <!-- Prevent flash: apply theme before render -->
+  <script>
+    (function () {
+      const t = localStorage.getItem('deepfocus-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <style>
+    .login-bg-particles {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      animation: float linear infinite;
+      opacity: 0.4;
+    }
+
+    @keyframes float {
+      from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.4; }
+      90%  { opacity: 0.3; }
+      to   { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating particles background -->
+  <div class="login-bg-particles" id="particles" aria-hidden="true"></div>
+
+  <div class="login-page" style="position: relative; z-index: 10;">
+    <div class="login-card scale-in">
+
+      <div class="login-logo">🎧</div>
+      <h1 class="login-title">Deep-Focus LoFi</h1>
+      <p class="login-sub">
+        Sign in to save your Pomodoro sessions and track<br>
+        your focus streaks across devices.
+      </p>
+
+      <!-- Magic Link Form -->
+      <form class="login-form" id="login-form" novalidate>
+        <input
+          id="email-input"
+          class="login-input"
+          type="email"
+          placeholder="your@email.com"
+          autocomplete="email"
+          required
+        />
+        <button type="submit" class="btn btn-primary" id="magic-link-btn" style="width:100%; padding: 12px;">
+          ✉️ Send Magic Link
+        </button>
+      </form>
+
+      <!-- Success state -->
+      <div class="login-magic-sent" id="magic-sent" role="alert">
+        📬 Check your inbox! We sent a link to <strong id="sent-email"></strong>
+      </div>
+
+      <div class="login-divider">or</div>
+
+      <!-- Guest mode -->
+      <button class="login-guest-btn" id="guest-btn" type="button">
+        Continue as Guest (sessions saved locally)
+      </button>
+
+      <!-- Dark mode toggle -->
+      <div style="margin-top: 24px; display: flex; justify-content: center;">
+        <button id="theme-toggle" aria-label="Toggle dark/light mode" style="margin: 0 auto;">
+          <div class="theme-icons">
+            <div class="theme-icon theme-icon-moon">🌙</div>
+            <div class="theme-icon theme-icon-sun">☀️</div>
+          </div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <script type="module">
+    import { initSupabase, signInWithMagicLink } from './js/supabase-client.js';
+    import { initDarkMode } from './js/darkmode.js';
+
+    initDarkMode();
+    initSupabase();
+
+    // Particles
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = 4 + Math.random() * 12;
+      p.style.cssText = `
+        width: ${size}px; height: ${size}px;
+        left: ${Math.random() * 100}%;
+        animation-duration: ${8 + Math.random() * 12}s;
+        animation-delay: ${-Math.random() * 20}s;
+      `;
+      container.appendChild(p);
+    }
+
+    // Magic link form
+    const form = document.getElementById('login-form');
+    const btn  = document.getElementById('magic-link-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email-input').value.trim();
+      if (!email) return;
+
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+
+      const { error } = await signInWithMagicLink(email);
+
+      if (error) {
+        btn.textContent = '✉️ Send Magic Link';
+        btn.disabled = false;
+        window.showToast?.('❌ ' + error.message, 'error') ||
+          alert('Error: ' + error.message);
+        return;
+      }
+
+      // Show sent confirmation
+      document.getElementById('sent-email').textContent = email;
+      document.getElementById('magic-sent').style.display = 'block';
+      form.style.display = 'none';
+    });
+
+    // Guest mode
+    document.getElementById('guest-btn').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+
+  <!-- Toast container -->
+  <div id="toast-container" aria-live="polite"></div>
+</body>
+</html>

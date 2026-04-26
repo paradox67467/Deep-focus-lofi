@@ -1,0 +1,151 @@
+/**
+ * darkmode.css — theme transitions & light/dark variant overrides
+ * Theme: Void Indigo — consistent indigo accent in both light and dark
+ */
+
+/* ─── Smooth theme transition on all elements ──────────────── */
+*,
+*::before,
+*::after {
+  transition:
+    background-color var(--t-slow),
+    border-color     var(--t-slow),
+    color            var(--t-slow),
+    box-shadow       var(--t-slow),
+    fill             var(--t-slow),
+    stroke           var(--t-slow);
+}
+
+/* SVG stroke-dashoffset is animated by timer.js — no transition override needed */
+
+
+/* ─── Theme Toggle Button ──────────────────────────────────── */
+#theme-toggle {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  width: 40px; height: 40px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  transition: all var(--t-base);
+}
+#theme-toggle:hover {
+  background: var(--bg-glass-hover);
+  border-color: var(--border-accent);
+}
+
+.theme-icons {
+  position: relative; width: 20px; height: 20px;
+}
+.theme-icon {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              opacity 0.4s ease;
+}
+
+/* Dark mode (default): show moon, hide sun */
+.theme-icon-moon { transform: translateY(0)   scale(1);   opacity: 1; }
+.theme-icon-sun  { transform: translateY(20px) scale(0.5); opacity: 0; }
+
+/* Light mode: show sun, hide moon */
+[data-theme="light"] .theme-icon-moon { transform: translateY(-20px) scale(0.5); opacity: 0; }
+[data-theme="light"] .theme-icon-sun  { transform: translateY(0)     scale(1);   opacity: 1; }
+
+/* ─── Transition exception: no transition on page load ──────── */
+.no-transitions *,
+.no-transitions *::before,
+.no-transitions *::after {
+  transition: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Lofi Cinema — Light Mode Component Overrides
+   Frosted white glass over anime bg
+════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] #app-background { background: transparent; }
+[data-theme="light"] body            { background: #F9F5FF; }
+
+[data-theme="light"] .header {
+  background: rgba(249, 245, 255, 0.88);
+  border-bottom-color: #E9D5FF;
+  backdrop-filter: blur(24px) saturate(1.5);
+}
+
+/* Light cards: bright frosted glass — shows anime bg underneath */
+[data-theme="light"] .card {
+  background: rgba(255, 255, 255, 0.76);
+  border-color: #E9D5FF;
+  box-shadow: 0 4px 24px rgba(109, 40, 217, 0.1);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+}
+[data-theme="light"] .card:hover {
+  box-shadow: 0 6px 32px rgba(109, 40, 217, 0.15);
+}
+
+[data-theme="light"] .stat-box {
+  background: rgba(233, 213, 255, 0.4);
+  border-color: #E9D5FF;
+}
+[data-theme="light"] .session-item      { background: rgba(233, 213, 255, 0.35); }
+[data-theme="light"] .session-item:hover { background: rgba(147, 51, 234, 0.08); }
+
+[data-theme="light"] .timer-track { stroke: #EFE6FF; }
+
+[data-theme="light"] .yt-overlay {
+  background: linear-gradient(135deg, #EFE6FF 0%, #F9F5FF 100%);
+}
+
+[data-theme="light"] .modal {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #E9D5FF;
+  box-shadow: 0 16px 64px rgba(109, 40, 217, 0.18);
+}
+[data-theme="light"] .toast {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #E9D5FF;
+  box-shadow: 0 4px 20px rgba(109, 40, 217, 0.12);
+}
+
+[data-theme="light"] .dur-chip       { background: rgba(233, 213, 255, 0.5); border-color: #E9D5FF; }
+[data-theme="light"] .btn-ghost       { border-color: #E9D5FF; color: var(--text-secondary); }
+[data-theme="light"] .btn-ghost:hover { background: var(--accent-dim); color: var(--accent); border-color: var(--border-accent); }
+[data-theme="light"] .btn-icon        { background: rgba(233, 213, 255, 0.5); border-color: #E9D5FF; }
+[data-theme="light"] .btn-icon:hover  { background: var(--accent-dim); border-color: var(--border-accent); color: var(--accent); }
+
+[data-theme="light"] .guest-note {
+  background: rgba(147, 51, 234, 0.07);
+  border-color: rgba(147, 51, 234, 0.2);
+}
+[data-theme="light"] .cycle-dot {
+  background: #EFE6FF;
+  border-color: #E9D5FF;
+}
+
+[data-theme="light"] .stat-value    { color: #9333EA; }
+[data-theme="light"] .session-dur   { background: var(--accent-dim); color: var(--accent); }
+
+[data-theme="light"] .btn-timer-main {
+  background: linear-gradient(135deg, #9333EA, #A855F7);
+  color: #fff;
+  box-shadow: 0 6px 28px rgba(147, 51, 234, 0.38);
+}
+[data-theme="light"] .btn-timer-main:hover {
+  box-shadow: 0 8px 36px rgba(147, 51, 234, 0.55);
+}
+
+[data-theme="light"] .logo-text em {
+  background: linear-gradient(135deg, #9333EA, #C084FC);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── No-transition on load ─────────────────────────────────── */
+.no-transitions *,
+.no-transitions *::before,
+.no-transitions *::after { transition: none !important; }

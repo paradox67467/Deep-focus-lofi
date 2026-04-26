@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep-Focus LoFi Dashboard</title>
+  <meta name="description" content="A unified LoFi workspace — Pomodoro timer, YouTube LoFi stream, and session tracking." />
+
+  <!-- Prevent theme flash -->
+  <script>
+    (function () {
+      const t = localStorage.getItem('deepfocus-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/darkmode.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+  <!-- Anime backgrounds (shows on focus timer start) -->
+  <div id="app-background" aria-hidden="true">
+    <div class="anime-bg bg-1" aria-hidden="true"></div>
+    <div class="anime-bg bg-2" aria-hidden="true"></div>
+  </div>
+  <div id="vignette" aria-hidden="true"></div>
+
+  <div id="app">
+
+    <!-- ══ HEADER ══════════════════════════════════════════════ -->
+    <header class="header" role="banner">
+
+      <a href="#" class="logo" aria-label="Deep-Focus LoFi">
+        <div class="logo-icon" aria-hidden="true">🎧</div>
+        <span class="logo-text">Deep<em>Focus</em></span>
+      </a>
+
+      <div class="header-actions">
+        <div class="auth-section">
+          <div id="user-badge" class="user-badge" style="display:none" aria-live="polite">
+            <div class="user-avatar" aria-hidden="true">U</div>
+            <span class="user-email">user</span>
+          </div>
+          <button id="login-btn"  class="btn btn-ghost" aria-label="Sign in">Sign in</button>
+          <button id="logout-btn" class="btn btn-ghost" aria-label="Sign out" style="display:none">Sign out</button>
+        </div>
+
+        <button id="timer-settings-btn" class="btn-icon" aria-label="Timer settings" title="Timer settings">⚙️</button>
+
+        <button id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle theme">
+          <div class="theme-icons" aria-hidden="true">
+            <div class="theme-icon theme-icon-moon">🌙</div>
+            <div class="theme-icon theme-icon-sun">☀️</div>
+          </div>
+        </button>
+      </div>
+    </header>
+
+    <!-- ══ MAIN 3-CARD GRID ════════════════════════════════════ -->
+    <main class="main-content" role="main">
+
+      <!-- ── [1] Pomodoro Timer (left, full height) ────────── -->
+      <section id="timer-card" class="card slide-up" aria-label="Pomodoro Timer">
+
+        <div class="card-header">
+          <span class="card-title">Pomodoro Timer</span>
+          <div id="cycle-badges" class="cycle-badges" aria-live="polite"></div>
+        </div>
+
+        <!-- NO task-label input here — removed per user request -->
+
+        <!-- SVG ring -->
+        <div class="timer-ring-wrap" role="timer" aria-live="off">
+          <svg class="timer-svg" viewBox="0 0 240 240" aria-hidden="true">
+            <defs>
+              <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#C084FC"/>
+                <stop offset="100%" stop-color="#E0AAFF"/>
+              </linearGradient>
+              <linearGradient id="violetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#67E8F9"/>
+                <stop offset="100%" stop-color="#A5F3FC"/>
+              </linearGradient>
+            </defs>
+            <circle class="timer-track"    cx="120" cy="120" r="112"/>
+            <circle class="timer-progress" cx="120" cy="120" r="112"
+                    id="timer-progress"
+                    stroke="url(#goldGradient)"
+                    stroke-dasharray="703.7"
+                    stroke-dashoffset="703.7"/>
+          </svg>
+          <div class="timer-center">
+            <div id="timer-display"    class="timer-display">25:00</div>
+            <div id="timer-mode-label" class="timer-mode-label">Ready</div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="timer-controls" role="group" aria-label="Timer controls">
+          <button id="timer-reset"  class="btn-timer-secondary" aria-label="Reset"       title="Reset">↺</button>
+          <button id="timer-toggle" class="btn-timer-main"      aria-label="Start/Pause"            >▶</button>
+          <button id="skip-segment" class="btn-timer-secondary" aria-label="Skip segment" title="Skip">⏭</button>
+        </div>
+
+        <!-- Duration chips -->
+        <div class="timer-settings-row">
+          <div class="dur-chip" title="Focus duration">
+            <span>🎯</span>
+            <input id="focus-dur-input" type="number" value="25" min="1" max="120" aria-label="Focus minutes"/>
+            <span>min</span>
+          </div>
+          <div class="dur-chip" title="Break duration">
+            <span>☕</span>
+            <input id="break-dur-input" type="number" value="5" min="1" max="60" aria-label="Break minutes"/>
+            <span>min</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── [2] LoFi YouTube Player — native controls, no external buttons ── -->
+      <section id="youtube-card" class="card slide-up" style="animation-delay:0.08s" aria-label="LoFi Music Player">
+
+        <div class="card-header">
+          <span class="card-title">LoFi Stream</span>
+          <a href="https://www.youtube.com/@tranquiltuneshub-y5d"
+             target="_blank" rel="noopener"
+             style="font-size:11px; color:var(--accent); text-decoration:none; font-weight:600;"
+             aria-label="TranquilTunes Hub">@tranquiltuneshub-y5d ↗</a>
+        </div>
+
+        <!-- Embed fills the rest of the card. Native YT controls handle play/pause/next -->
+        <div class="youtube-embed-wrap" id="yt-wrap">
+          <div id="yt-player-container" style="position:absolute;inset:0;width:100%;height:100%;"></div>
+
+          <!-- Overlay: click anywhere to load and play -->
+          <div class="yt-overlay" id="yt-overlay" role="button" tabindex="0"
+               aria-label="Click to load LoFi stream">
+            <div class="yt-play-icon" aria-hidden="true">▶</div>
+            <div class="yt-overlay-title">TranquilTunes Hub</div>
+            <div class="yt-overlay-sub">Click anywhere to start LoFi</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── [3] Session History (right bottom) ───────────── -->
+      <section id="history-card" class="card slide-up" style="animation-delay:0.15s" aria-label="Session History">
+
+        <div class="card-header">
+          <span class="card-title">Today's Sessions</span>
+          <button class="btn-icon" id="refresh-history" aria-label="Refresh" title="Refresh">↻</button>
+        </div>
+
+        <div id="guest-note" class="guest-note" role="note">
+          <span>🔒</span>
+          <span>Saved locally. <a href="login.html" style="color:var(--accent);">Sign in</a> to sync.</span>
+        </div>
+
+        <div class="session-stats" role="group">
+          <div class="stat-box">
+            <div class="stat-value" id="stat-session-count" aria-live="polite">0</div>
+            <div class="stat-label">Sessions</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="stat-total-minutes" aria-live="polite">0<span class="unit">m</span></div>
+            <div class="stat-label">Focus time</div>
+          </div>
+        </div>
+
+        <div id="session-list" class="session-list" role="list" aria-live="polite">
+          <div class="no-sessions">
+            <div class="no-sessions-icon">🍅</div>
+            <div>No sessions yet.<br>Start your first Pomodoro!</div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <footer style="text-align:center;padding:10px;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);">
+      Deep-Focus LoFi · Built with 🩷
+    </footer>
+
+  </div><!-- /#app -->
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2 id="settings-title" class="modal-title" style="margin:0;">⚙️ Timer Settings</h2>
+        <button id="settings-close" class="btn-icon" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-row">
+        <label for="modal-focus-dur">Focus duration</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="modal-focus-dur" class="modal-input" value="25" min="1" max="120"/>
+          <span style="font-size:13px;color:var(--text-muted);">min</span>
+        </div>
+      </div>
+      <div class="modal-row">
+        <label for="modal-break-dur">Break duration</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="modal-break-dur" class="modal-input" value="5" min="1" max="60"/>
+          <span style="font-size:13px;color:var(--text-muted);">min</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button id="settings-save"      class="btn btn-primary" style="flex:1;">Save</button>
+        <button id="settings-close-alt" class="btn btn-ghost"   style="flex:1;"
+                onclick="document.getElementById('settings-modal').classList.remove('open')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+
+  <script>
+    document.getElementById('skip-segment')?.addEventListener('click', () =>
+      window.dispatchEvent(new CustomEvent('timer:skip')));
+    document.getElementById('refresh-history')?.addEventListener('click', () =>
+      window.dispatchEvent(new CustomEvent('sessions:refresh')));
+    ['focus-dur-input','break-dur-input'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => {
+        const f = +document.getElementById('focus-dur-input').value;
+        const b = +document.getElementById('break-dur-input').value;
+        window.dispatchEvent(new CustomEvent('timer:setDurations', { detail: { focus: f, breakDur: b } }));
+      });
+    });
+  </script>
+
+</body>
+</html>
